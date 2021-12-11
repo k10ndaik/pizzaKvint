@@ -22,7 +22,7 @@ class Pizza():
             { 'trigger': 'confirmation', 'source': 'confirmation', 'dest': 'stop' },
             { 'trigger': 'stop', 'source': 'stop', 'dest': 'start' }
             ]
-        self.machine = Machine(self.zakaz,states=self.states, transitions=self.transitions, initial='start' )
+        self.machine = Machine(self.zakaz,states=self.states, transitions=self.transitions, initial='start')
 
 class Otvet():
     def __init__(self, user_id, text):
@@ -33,6 +33,13 @@ class Otvet():
             self.newZacaz = Pizza()
             cur.execute('INSERT INTO states VALUES(?,?)', (self.user_id, pickle.dumps(self.newZacaz)))
             base.commit()
+            print("экземпляр создание")
+            if self.newZacaz.zakaz.is_start():
+                self.newZacaz.zakaz.start()
+                self.otvet = self.newZacaz.zakaz.otvet
+                cur.execute('UPDATE states SET state = ? WHERE id == ?', (pickle.dumps(self.newZacaz), self.user_id))
+                base.commit()
+                print("1")
         else:
             self.oldZacaz = pickle.loads(cur.execute('SELECT state FROM states WHERE id == ?', (self.user_id,)).fetchone()[0])
             if self.oldZacaz.zakaz.is_start():
@@ -40,29 +47,27 @@ class Otvet():
                 self.otvet = self.oldZacaz.zakaz.otvet
                 cur.execute('UPDATE states SET state = ? WHERE id == ?', (pickle.dumps(self.oldZacaz), self.user_id))
                 base.commit()
+                print("2")
+
             elif self.oldZacaz.zakaz.is_size() and 'бол' in self.text.lower():
                 self.oldZacaz.zakaz.size()
                 self.otvet = self.oldZacaz.zakaz.otvet
                 cur.execute('UPDATE states SET state = ? WHERE id == ?', (pickle.dumps(self.oldZacaz), self.user_id))
                 base.commit()
+                print("3")
             elif self.oldZacaz.zakaz.is_money() and 'нал' in self.text.lower():
                 self.oldZacaz.zakaz.money()
                 self.otvet = self.oldZacaz.zakaz.otvet
                 cur.execute('UPDATE states SET state = ? WHERE id == ?', (pickle.dumps(self.oldZacaz), self.user_id))
                 base.commit()
+                print("4")
             elif self.oldZacaz.zakaz.is_confirmation() and 'да' in self.text.lower():
                 self.oldZacaz.zakaz.confirmation()
                 self.otvet = self.oldZacaz.zakaz.otvet
-                cur.execute('UPDATE states SET state = ? WHERE id == ?', (pickle.dumps(self.oldZacaz), self.user_id))
-                base.commit()
-            elif self.oldZacaz.zakaz.is_stop():
                 self.oldZacaz.zakaz.stop()
-                self.otvet = self.oldZacaz.zakaz.otvet
                 cur.execute('UPDATE states SET state = ? WHERE id == ?', (pickle.dumps(self.oldZacaz), self.user_id))
                 base.commit()
-
-        self.otvet = pickle.loads(cur.execute('SELECT state FROM states WHERE id == ?', (self.user_id,)).fetchone()[0]).zakaz.otvet
-
+                print("5")
 
 
 
