@@ -4,7 +4,7 @@ import pickle
 
 class Zakaz(object):
     def __init__(self):
-        self.otvet = 'start'
+        self.otvet = 'Какую вы хотите пиццу? Большую или маленькую?'
     def on_enter_size(self): self.otvet = 'Какую вы хотите пиццу? Большую или маленькую?'
     def on_enter_money(self): self.otvet = 'Как вы будете платить?'
     def on_enter_confirmation(self): self.otvet = 'Вы хотите большую пиццу, оплата - наличкой?'
@@ -31,13 +31,16 @@ class Otvet():
         self.state_ID = cur.execute('SELECT state FROM states WHERE id == ?', (self.user_id,))
         if self.state_ID.fetchone() is None:
             self.newZacaz = Pizza()
-            self.newZacaz.zakaz.start()
             cur.execute('INSERT INTO states VALUES(?,?)', (self.user_id, pickle.dumps(self.newZacaz)))
             base.commit()
-            self.otvet = self.newZacaz.zakaz.otvet
         else:
             self.oldZacaz = pickle.loads(cur.execute('SELECT state FROM states WHERE id == ?', (self.user_id,)).fetchone()[0])
-            if self.oldZacaz.zakaz.is_size() and 'бол' in self.text.lower():
+            if self.oldZacaz.zakaz.is_start():
+                self.oldZacaz.zakaz.start()
+                self.otvet = self.oldZacaz.zakaz.otvet
+                cur.execute('UPDATE states SET state = ? WHERE id == ?', (pickle.dumps(self.oldZacaz), self.user_id))
+                base.commit()
+            elif self.oldZacaz.zakaz.is_size() and 'бол' in self.text.lower():
                 self.oldZacaz.zakaz.size()
                 self.otvet = self.oldZacaz.zakaz.otvet
                 cur.execute('UPDATE states SET state = ? WHERE id == ?', (pickle.dumps(self.oldZacaz), self.user_id))
