@@ -68,6 +68,15 @@ class Otvet():
                 cur.execute('UPDATE states SET state = ? WHERE id == ?', (pickle.dumps(self.oldZacaz), self.user_id))
                 base.commit()
                 print("5")
+            else:
+            #self.oldZacaz.zakaz.is_stop():
+            #     self.oldZacaz.zakaz.stop()
+            #     self.otvet = self.oldZacaz.zakaz.otvet
+            #     cur.execute('UPDATE states SET state = ? WHERE id == ?', (pickle.dumps(self.oldZacaz), self.user_id))
+            #     base.commit()
+            #     print("6")
+                self.otvet = pickle.loads(cur.execute('SELECT state FROM states WHERE id == ?', (self.user_id,)).fetchone()[0]).zakaz.otvet
+
 
 
 
