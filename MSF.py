@@ -1,6 +1,7 @@
 from transitions import Machine, State
 from baza import *
 import pickle
+import re
 
 class Zakaz(object):
     def __init__(self):
@@ -39,7 +40,6 @@ class Otvet():
                 self.otvet = self.newZacaz.zakaz.otvet
                 cur.execute('UPDATE states SET state = ? WHERE id == ?', (pickle.dumps(self.newZacaz), self.user_id))
                 base.commit()
-                print("1")
         else:
             self.oldZacaz = pickle.loads(cur.execute('SELECT state FROM states WHERE id == ?', (self.user_id,)).fetchone()[0])
             if self.oldZacaz.zakaz.is_start():
@@ -47,34 +47,27 @@ class Otvet():
                 self.otvet = self.oldZacaz.zakaz.otvet
                 cur.execute('UPDATE states SET state = ? WHERE id == ?', (pickle.dumps(self.oldZacaz), self.user_id))
                 base.commit()
-                print("2")
 
-            elif self.oldZacaz.zakaz.is_size() and 'бол' in self.text.lower():
+            elif self.oldZacaz.zakaz.is_size() and re.findall(r'больш[а,у][я,ю]',self.text.lower()) != []:
                 self.oldZacaz.zakaz.size()
                 self.otvet = self.oldZacaz.zakaz.otvet
                 cur.execute('UPDATE states SET state = ? WHERE id == ?', (pickle.dumps(self.oldZacaz), self.user_id))
                 base.commit()
-                print("3")
+
             elif self.oldZacaz.zakaz.is_money() and 'нал' in self.text.lower():
                 self.oldZacaz.zakaz.money()
                 self.otvet = self.oldZacaz.zakaz.otvet
                 cur.execute('UPDATE states SET state = ? WHERE id == ?', (pickle.dumps(self.oldZacaz), self.user_id))
                 base.commit()
-                print("4")
+
             elif self.oldZacaz.zakaz.is_confirmation() and 'да' in self.text.lower():
                 self.oldZacaz.zakaz.confirmation()
                 self.otvet = self.oldZacaz.zakaz.otvet
                 self.oldZacaz.zakaz.stop()
                 cur.execute('UPDATE states SET state = ? WHERE id == ?', (pickle.dumps(self.oldZacaz), self.user_id))
                 base.commit()
-                print("5")
+
             else:
-            #self.oldZacaz.zakaz.is_stop():
-            #     self.oldZacaz.zakaz.stop()
-            #     self.otvet = self.oldZacaz.zakaz.otvet
-            #     cur.execute('UPDATE states SET state = ? WHERE id == ?', (pickle.dumps(self.oldZacaz), self.user_id))
-            #     base.commit()
-            #     print("6")
                 self.otvet = pickle.loads(cur.execute('SELECT state FROM states WHERE id == ?', (self.user_id,)).fetchone()[0]).zakaz.otvet
 
 
